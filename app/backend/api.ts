@@ -8,7 +8,7 @@ import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 export const openApiHandler = new OpenAPIHandler(router, {
   interceptors: [
     onError((error) => {
-      // console.error(error);
+      console.error(error);
     }),
   ],
   plugins: [

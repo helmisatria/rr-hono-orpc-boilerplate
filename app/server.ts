@@ -16,7 +16,7 @@ declare module "react-router" {
   }
 }
 
-const app = new Hono<{ Bindings: Bindings; Variables: Env }>();
+const app = new Hono<{ Bindings: Env }>();
 
 const handler = new RPCHandler(router);
 
@@ -25,6 +25,7 @@ app.use("/rpc/*", async (c, next) => {
     prefix: "/rpc",
     context: {
       headers: c.req.raw.headers,
+      KV: c.env.KV,
     },
   });
 
@@ -40,6 +41,7 @@ app.use("/api/*", async (c, next) => {
     prefix: "/api",
     context: {
       headers: c.req.raw.headers,
+      KV: c.env.KV,
     },
   });
 
@@ -50,7 +52,7 @@ app.use("/api/*", async (c, next) => {
   await next();
 });
 
-export default createHonoServer({
+export default await createHonoServer({
   app,
   getLoadContext(c, options) {
     return {

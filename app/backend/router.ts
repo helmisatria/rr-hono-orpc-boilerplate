@@ -7,30 +7,36 @@ const PlanetSchema = z.object({
   description: z.string().optional(),
 });
 
-const planets = [
-  { id: 1, name: "name" },
-  { id: 2, name: "name2" },
-];
-
 export const listPlanet = os
+  .$context<{ headers: Headers; KV: KVNamespace }>()
   .input(
     z.object({
       limit: z.number().int().min(1).max(100).optional(),
       cursor: z.number().int().min(0).default(0),
     })
   )
-  .handler(async ({ input }) => {
+  .handler(async ({ input, context }) => {
     // your list code here
-    return planets;
+    return await context.KV.get("planets", { type: "json" });
   });
 
-export const findPlanet = os.input(PlanetSchema.pick({ id: true })).handler(async ({ input }) => {
-  // your find code here
-  return planets.find((planet) => planet.id === input.id);
-});
+export const findPlanet = os
+  .$context<{ headers: Headers; KV: KVNamespace }>()
+  .input(PlanetSchema.pick({ id: true }))
+  .handler(async ({ input, context }) => {
+    // your find code here
+    const planets = ((await context.KV.get("planets", { type: "json" })) as any[]) || [];
+    const planet = planets?.find((p: any) => p.id === input.id);
+
+    if (!planet) {
+      throw new ORPCError("NOT_FOUND", { message: "Planet not found" });
+    }
+
+    return planet;
+  });
 
 export const createPlanet = os
-  .$context<{ headers: Headers }>()
+  .$context<{ headers: Headers; KV: KVNamespace }>()
   .use(({ context, next }) => {
     // const user = parseJWT(context.headers.authorization?.split(" ")[1]);
     // if (user) {
@@ -42,8 +48,9 @@ export const createPlanet = os
   .input(PlanetSchema.omit({ id: true }))
   .handler(async ({ input, context }) => {
     // your create code here
+    const planets = ((await context.KV.get("planets", { type: "json" })) as any[]) || [];
     const newPlanet = { id: planets.length + 1, name: input.name };
-    planets.push(newPlanet);
+    await context.KV.put("planets", JSON.stringify([...planets, newPlanet]));
     return newPlanet;
   });
 
