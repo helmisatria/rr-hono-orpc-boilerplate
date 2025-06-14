@@ -3,6 +3,9 @@ import { Hono } from "hono";
 import type { Bindings } from "hono/types";
 import type { AppLoadContext } from "react-router";
 import { createHonoServer } from "react-router-hono-server/cloudflare";
+import { router } from "./backend/router";
+import { RPCHandler } from "@orpc/server/fetch";
+import { openApiHandler } from "./backend/api";
 
 declare module "react-router" {
   interface AppLoadContext {
@@ -14,6 +17,38 @@ declare module "react-router" {
 }
 
 const app = new Hono<{ Bindings: Bindings; Variables: Env }>();
+
+const handler = new RPCHandler(router);
+
+app.use("/rpc/*", async (c, next) => {
+  const { matched, response } = await handler.handle(c.req.raw, {
+    prefix: "/rpc",
+    context: {
+      headers: c.req.raw.headers,
+    },
+  });
+
+  if (matched) {
+    return c.newResponse(response.body, response);
+  }
+
+  await next();
+});
+
+app.use("/api/*", async (c, next) => {
+  const { matched, response } = await openApiHandler.handle(c.req.raw, {
+    prefix: "/api",
+    context: {
+      headers: c.req.raw.headers,
+    },
+  });
+
+  if (matched) {
+    return c.newResponse(response.body, response);
+  }
+
+  await next();
+});
 
 export default createHonoServer({
   app,
