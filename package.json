@@ -1,40 +1,42 @@
 {
-	"name": "rr-hono-orpc",
-	"private": true,
-	"type": "module",
-	"scripts": {
-		"build": "react-router build",
-		"cf-typegen": "wrangler types",
-		"deploy": "pnpm run build && wrangler deploy",
-		"dev": "react-router dev",
-		"postinstall": "npm run cf-typegen",
-		"preview": "pnpm run build && vite preview",
-		"typecheck": "npm run cf-typegen && react-router typegen && tsc -b"
-	},
-	"dependencies": {
-		"@orpc/client": "^1.5.1",
-		"@orpc/openapi": "^1.5.1",
-		"@orpc/server": "^1.5.1",
-		"@orpc/zod": "^1.5.1",
-		"hono": "^4.7.11",
-		"isbot": "^5.1.27",
-		"react": "^19.1.0",
-		"react-dom": "^19.1.0",
-		"react-router": "^7.5.3",
-		"react-router-hono-server": "^2.13.0",
-		"zod": "^3.25.64"
-	},
-	"devDependencies": {
-		"@cloudflare/vite-plugin": "^1.0.12",
-		"@react-router/dev": "^7.5.3",
-		"@tailwindcss/vite": "^4.1.4",
-		"@types/node": "^20",
-		"@types/react": "^19.1.2",
-		"@types/react-dom": "^19.1.2",
-		"tailwindcss": "^4.1.4",
-		"typescript": "^5.8.3",
-		"vite": "^6.3.3",
-		"vite-tsconfig-paths": "^5.1.4",
-		"wrangler": "^4.20.0"
-	}
+  "name": "rr-hono-orpc",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "react-router build",
+    "cf-typegen": "wrangler types",
+    "deploy": "pnpm run build && wrangler deploy",
+    "dev": "react-router dev",
+    "postinstall": "npm run cf-typegen",
+    "preview": "pnpm run build && vite preview",
+    "typecheck": "npm run cf-typegen && react-router typegen && tsc -b"
+  },
+  "dependencies": {
+    "@orpc/client": "^1.5.1",
+    "@orpc/openapi": "^1.5.1",
+    "@orpc/server": "^1.5.1",
+    "@orpc/tanstack-query": "^1.5.1",
+    "@orpc/zod": "^1.5.1",
+    "@tanstack/react-query": "^5.80.7",
+    "deepmerge": "^4.3.1",
+    "hono": "^4.7.11",
+    "isbot": "^5.1.27",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router": "^7.5.3",
+    "zod": "^3.25.64"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.0.12",
+    "@react-router/dev": "^7.5.3",
+    "@tailwindcss/vite": "^4.1.4",
+    "@types/node": "^20.19.0",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "tailwindcss": "^4.1.4",
+    "typescript": "^5.8.3",
+    "vite": "npm:rolldown-vite@latest",
+    "vite-tsconfig-paths": "^5.1.4",
+    "wrangler": "^4.20.0"
+  }
 }

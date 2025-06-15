@@ -5,11 +5,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "rr-hono-orpc",
-  "compatibility_date": "2025-04-04",
-  "main": "./build/server/index.js",
+  "compatibility_date": "2025-06-15",
+  "main": "./app/backend/server.ts",
   "vars": {
     "VALUE_FROM_CLOUDFLARE": "Hello from Hono + Cloudflare 2"
   },
+  "compatibility_flags": ["nodejs_compat"],
   "observability": {
     "enabled": true
   },

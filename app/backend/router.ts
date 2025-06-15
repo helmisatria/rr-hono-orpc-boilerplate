@@ -15,9 +15,10 @@ export const listPlanet = os
       cursor: z.number().int().min(0).default(0),
     })
   )
+  .output(z.array(PlanetSchema))
   .handler(async ({ input, context }) => {
     // your list code here
-    return await context.KV.get("planets", { type: "json" });
+    return (await context.KV.get("planets", { type: "json" })) || [];
   });
 
 export const findPlanet = os
