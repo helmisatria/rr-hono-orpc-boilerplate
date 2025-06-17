@@ -1,8 +1,13 @@
 import { Hono, type Context } from "hono";
 import { contextStorage } from "hono/context-storage";
-import { logger } from "hono/logger";
 import { createRequestHandler } from "react-router";
-import { cache } from "hono/cache";
+import { logger } from "hono/logger";
+import { createRouterClient, type RouterClient } from "@orpc/server";
+import { RPCHandler } from "@orpc/server/fetch";
+import { BatchHandlerPlugin } from "@orpc/server/plugins";
+import { openApiHandler } from "./api";
+import { router } from "./router";
+import { requestId } from "hono/request-id";
 
 declare module "react-router" {
   export interface AppLoadContext {
@@ -19,18 +24,33 @@ declare global {
   var $orpcClient: RouterClient<typeof router>;
 }
 
-import { createRouterClient, type RouterClient } from "@orpc/server";
-import { RPCHandler } from "@orpc/server/fetch";
-import { BatchHandlerPlugin } from "@orpc/server/plugins";
-import { openApiHandler } from "./api";
-import { router } from "./router";
-
 const requestHandler = createRequestHandler(() => import("virtual:react-router/server-build"), import.meta.env.MODE);
 
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<{ Bindings: Env; Variables: { requestId: string } }>();
 
-app.use("*", logger());
+app.use(requestId());
 app.use(contextStorage());
+app.use(logger());
+
+// app.use("*", async (c, next) => {
+//   const start = Date.now();
+//   await next();
+//   const duration = Date.now() - start;
+//   const log = {
+//     level: "info",
+//     time: dayjs().toISOString(),
+//     requestId: c.get("requestId"),
+//     request: {
+//       method: c.req.method,
+//       url: c.req.url,
+//     },
+//     response: {
+//       status: c.res.status,
+//     },
+//     duration: `${duration}ms`,
+//   };
+//   console.log(log);
+// });
 
 const handler = new RPCHandler(router, {
   plugins: [new BatchHandlerPlugin()],
@@ -93,4 +113,6 @@ app.all("*", async (c) => {
   return c.newResponse(response.body, response);
 });
 
-export default app;
+export default {
+  fetch: app.fetch,
+} satisfies ExportedHandler<Env>;

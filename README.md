@@ -1,10 +1,13 @@
-# Welcome to React Router!
+# React Router + Hono + oRPC
 
-A modern, production-ready template for building full-stack React applications using React Router.
+A modern, production-ready template for building full-stack React applications using React Router, Hono, and oRPC.
 
 ## Features
 
-- 🚀 Server-side rendering
+- 🐴 [Hono](https://hono.dev/) for the server
+- 🔮 [oRPC](https://orpc.unnoq.com/) for end-to-end typesafe APIs
+- ☁️ Deploy to [Cloudflare Workers](https://workers.cloudflare.com/)
+- 🚀 Full-stack React with Server-side rendering
 - ⚡️ Hot Module Replacement (HMR)
 - 📦 Asset bundling and optimization
 - 🔄 Data loading and mutations
@@ -19,7 +22,7 @@ A modern, production-ready template for building full-stack React applications u
 Install the dependencies:
 
 ```bash
-npm install
+pnpm install
 ```
 
 ### Development
@@ -27,7 +30,7 @@ npm install
 Start the development server with HMR:
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Your application will be available at `http://localhost:5173`.
@@ -37,7 +40,7 @@ Your application will be available at `http://localhost:5173`.
 Preview the production build locally:
 
 ```bash
-npm run preview
+pnpm run preview
 ```
 
 ## Building for Production
@@ -45,7 +48,7 @@ npm run preview
 Create a production build:
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 ## Deployment
@@ -55,19 +58,19 @@ Deployment is done using the Wrangler CLI.
 To build and deploy directly to production:
 
 ```sh
-npm run deploy
+pnpm run deploy
 ```
 
 To deploy a preview URL:
 
 ```sh
-npx wrangler versions upload
+pnpm exec wrangler versions upload
 ```
 
 You can then promote a version to production after verification or roll it out progressively.
 
 ```sh
-npx wrangler versions deploy
+pnpm exec wrangler versions deploy
 ```
 
 ## Styling
