@@ -1,0 +1,775 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# React Router v7 + Hono + oRPC + Cloudflare Workers Project Guidelines
+
+This document outlines the architecture, patterns, and best practices for this full-stack TypeScript project using React Router v7, Hono, oRPC, and Cloudflare Workers.
+
+## 🚨 CRITICAL: Core Architecture Principles
+
+### 1. **Domain-Driven Design with Features**
+- **ALL business logic and API endpoints are organized in `app/backend/features/`**
+- **Frontend domain logic is organized in `app/features/`**
+- **Use oRPC for end-to-end type safety instead of React Router loaders/actions**
+- **React Router loaders are ONLY for prefetching/caching with TanStack Query**
+- **Each feature contains its own schemas, handlers, and domain contracts**
+
+### 2. **Backend-First Type Safety**
+```typescript
+// ✅ CORRECT: Define domain logic in backend router
+export const createUser = os
+  .$context<{ headers: Headers; KV: KVNamespace }>()
+  .input(CreateUserSchema)
+  .output(UserSchema)
+  .handler(async ({ input, context }) => {
+    // Domain logic here
+  });
+
+// ✅ CORRECT: Frontend uses oRPC client
+const { data } = useQuery(orpc.user.create.queryOptions({ input: userData }));
+```
+
+### 3. **SSR Hydration Pattern**
+```typescript
+// ✅ CORRECT: Loader prefetches data and returns dehydratedState
+export async function loader({ context }: Route.LoaderArgs) {
+  const queryClient = getQueryClient();
+  await queryClient.prefetchQuery(orpc.domain.action.queryOptions({ input: {} }));
+  return { dehydratedState: dehydrate(queryClient) };
+}
+```
+
+## 🏗️ Project Structure
+
+```
+app/
+├── backend/                     # 🚨 CRITICAL: All domain logic lives here
+│   ├── features/               # DDD: Domain features organized by business logic
+│   │   ├── users/              # User domain
+│   │   │   ├── handlers.ts     # oRPC handlers for user operations
+│   │   │   ├── schemas.ts      # Zod schemas for user domain
+│   │   │   └── types.ts        # TypeScript types for user domain
+│   │   ├── products/           # Product domain
+│   │   │   ├── handlers.ts     # oRPC handlers for product operations
+│   │   │   ├── schemas.ts      # Zod schemas for product domain
+│   │   │   └── types.ts        # TypeScript types for product domain
+│   │   └── ...                 # Other domains
+│   ├── router.ts               # Main router aggregating all features
+│   ├── server.ts               # Hono server + Cloudflare Workers setup
+│   └── api.ts                  # OpenAPI handler configuration
+├── features/                   # Frontend DDD: Feature-specific UI components
+│   ├── users/                  # User feature frontend
+│   │   ├── components/         # User-specific UI components
+│   │   ├── hooks/              # User-specific hooks
+│   │   ├── queries/            # User-specific TanStack Query hooks
+│   │   └── types.ts            # Frontend types for user feature
+│   ├── products/               # Product feature frontend
+│   │   ├── components/         # Product-specific UI components
+│   │   ├── hooks/              # Product-specific hooks
+│   │   ├── queries/            # Product-specific TanStack Query hooks
+│   │   └── types.ts            # Frontend types for product feature
+│   └── ...                     # Other features
+├── lib/                        # Client setup & utilities
+│   ├── orpc.ts                 # oRPC client setup + TanStack Query utils
+│   └── query-client.ts         # TanStack Query client configuration
+├── hooks/                      # Global React hooks
+│   └── useDehydratedState.tsx  # SSR hydration hook
+├── routes/                     # 🚨 React Router v7 file-based routes
+│   ├── _index.tsx              # / (root route)
+│   ├── users._index.tsx        # /users (users listing)
+│   ├── users.$id.tsx           # /users/:id (user details)
+│   ├── users.new.tsx           # /users/new (create user)
+│   ├── products._index.tsx     # /products (products listing)
+│   ├── products.$id.tsx        # /products/:id (product details)
+│   └── $.tsx                   # Catch-all route (404)
+├── components/                 # shadcn/ui components (shared)
+└── root.tsx                    # App shell with QueryClientProvider
+```
+
+## 🔧 Technology Stack
+
+### Core Dependencies
+- **Frontend**: React Router v7 (Framework Mode with File-Based Routing)
+- **Backend**: Hono + oRPC + Zod
+- **Deployment**: Cloudflare Workers + KV Storage
+- **Data Fetching**: TanStack Query + oRPC integration
+- **Build**: Vite + @cloudflare/vite-plugin
+- **Package Manager**: pnpm (ALWAYS use pnpm)
+- **UI Components**: shadcn/ui (to be implemented)
+- **Styling**: Tailwind CSS
+
+### Key Packages
+```json
+{
+  "@react-router/fs-routes": "File-based routing conventions",
+  "@orpc/client": "Type-safe client generation",
+  "@orpc/server": "Backend route definitions", 
+  "@orpc/tanstack-query": "TanStack Query integration",
+  "@orpc/zod": "Zod schema integration",
+  "hono": "Web framework for Cloudflare Workers",
+  "react-router": "v7 framework mode"
+}
+```
+
+## 🎯 Backend Development (`app/backend/`)
+
+### 1. **Feature Structure (`app/backend/features/[domain]/`)**
+```typescript
+// ✅ CORRECT: app/backend/features/users/schemas.ts
+import { z } from "zod";
+
+export const UserSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1),
+  email: z.string().email(),
+  createdAt: z.string().datetime(),
+});
+
+export const CreateUserSchema = UserSchema.omit({ id: true, createdAt: true });
+export const UpdateUserSchema = UserSchema.partial().omit({ id: true });
+
+// ✅ CORRECT: app/backend/features/users/handlers.ts
+import { ORPCError, os } from "@orpc/server";
+import { CreateUserSchema, UpdateUserSchema, UserSchema } from "./schemas";
+
+export const listUsers = os
+  .$context<{ headers: Headers; KV: KVNamespace }>()
+  .input(z.object({
+    limit: z.number().int().min(1).max(100).optional(),
+    cursor: z.string().optional(),
+  }))
+  .output(z.array(UserSchema))
+  .handler(async ({ input, context }) => {
+    const users = await context.KV.get("users", { type: "json" });
+    return users || [];
+  });
+
+export const createUser = os
+  .$context<{ headers: Headers; KV: KVNamespace }>()
+  .use(authMiddleware) // Optional middleware
+  .input(CreateUserSchema)
+  .output(UserSchema)
+  .handler(async ({ input, context }) => {
+    // 1. Validate business rules
+    // 2. Interact with KV storage
+    // 3. Return typed response
+    const user = { id: crypto.randomUUID(), ...input, createdAt: new Date().toISOString() };
+    await context.KV.put(`user:${user.id}`, JSON.stringify(user));
+    return user;
+  });
+
+// Export all handlers
+export const userHandlers = {
+  list: listUsers,
+  create: createUser,
+  // ... other user operations
+};
+```
+
+### 2. **Main Router Aggregation (`app/backend/router.ts`)**
+```typescript
+// ✅ CORRECT: Aggregate all feature handlers
+import { userHandlers } from "./features/users/handlers";
+import { productHandlers } from "./features/products/handlers";
+
+export const router = {
+  user: userHandlers,
+  product: productHandlers,
+  // ... other domains
+};
+```
+
+### 3. **Feature Organization Patterns**
+```typescript
+// ✅ CORRECT: Feature folder structure
+app/backend/features/users/
+├── handlers.ts      # oRPC handlers (business logic)
+├── schemas.ts       # Zod schemas (data validation)
+├── types.ts         # TypeScript types (if needed beyond Zod)
+├── middleware.ts    # Feature-specific middleware (optional)
+└── utils.ts         # Feature-specific utilities (optional)
+
+// ✅ CORRECT: Import from feature schemas
+import { UserSchema, CreateUserSchema } from "./schemas";
+import { userBusinessLogic } from "./utils";
+```
+
+### 4. **Context & Middleware**
+```typescript
+// ✅ CORRECT: Typed context for Cloudflare Workers
+type AppContext = {
+  headers: Headers;
+  KV: KVNamespace;
+  // Add other Cloudflare bindings as needed
+};
+
+// ✅ CORRECT: Feature-specific middleware (app/backend/features/users/middleware.ts)
+export const authMiddleware = ({ context, next }) => {
+  const token = context.headers.get('authorization');
+  if (!token) throw new ORPCError('UNAUTHORIZED');
+  return next({ context: { ...context, user: parseToken(token) } });
+};
+
+// ✅ CORRECT: Shared middleware (app/backend/middleware/auth.ts)
+export const globalAuthMiddleware = ({ context, next }) => {
+  // Global authentication logic
+  return next();
+};
+```
+
+## 🎨 Frontend Development 
+
+### 1. **Frontend Feature Structure (`app/features/[domain]/`)**
+```typescript
+// ✅ CORRECT: app/features/users/queries/use-users.ts
+import { orpc } from "~/lib/orpc";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+export function useUsers() {
+  return useQuery(orpc.user.list.queryOptions({ input: {} }));
+}
+
+export function useCreateUser() {
+  const queryClient = useQueryClient();
+  
+  return useMutation(
+    orpc.user.create.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['user', 'list'] });
+      },
+    })
+  );
+}
+
+// ✅ CORRECT: app/features/users/components/user-card.tsx
+import { User } from "../types";
+
+interface UserCardProps {
+  user: User;
+}
+
+export function UserCard({ user }: UserCardProps) {
+  return (
+    <div className="border rounded-lg p-4">
+      <h3>{user.name}</h3>
+      <p>{user.email}</p>
+    </div>
+  );
+}
+
+// ✅ CORRECT: app/features/users/hooks/use-user-form.ts
+import { useState } from "react";
+import { useCreateUser } from "../queries/use-users";
+
+export function useUserForm() {
+  const [isOpen, setIsOpen] = useState(false);
+  const createUser = useCreateUser();
+
+  const handleSubmit = (data: CreateUserInput) => {
+    createUser.mutate({ input: data });
+    setIsOpen(false);
+  };
+
+  return { isOpen, setIsOpen, handleSubmit, isLoading: createUser.isPending };
+}
+```
+
+### 2. **oRPC Client Setup (`app/lib/orpc.ts`)**
+```typescript
+// ✅ CORRECT: Client configuration
+function getORPCClient(): RouterClient<typeof router> {
+  if (typeof window === "undefined") {
+    return globalThis.$orpcClient; // Server-side
+  }
+
+  const link = new RPCLink({
+    url: `${window.location.origin}/rpc`,
+    plugins: [new BatchLinkPlugin()],
+  });
+
+  return createORPCClient(link);
+}
+
+export const client: RouterClient<typeof router> = getORPCClient();
+export const orpc = createTanstackQueryUtils(client);
+```
+
+### 3. **Route Component Pattern with File-Based Routing**
+```typescript
+// ✅ CORRECT: app/routes/users._index.tsx
+import type { Route } from "./+types/users._index";
+import { orpc } from "~/lib/orpc";
+import { UserCard } from "~/features/users/components/user-card";
+import { useUsers } from "~/features/users/queries/use-users";
+
+export async function loader({ context }: Route.LoaderArgs) {
+  // ONLY prefetch data for caching - NO business logic here
+  const queryClient = getQueryClient();
+  await queryClient.prefetchQuery(orpc.user.list.queryOptions({ input: {} }));
+  
+  return {
+    dehydratedState: dehydrate(queryClient),
+  };
+}
+
+export default function UsersPage() {
+  // Use feature-specific hooks
+  const { data: users, isLoading } = useUsers();
+
+  if (isLoading) return <div>Loading...</div>;
+
+  return (
+    <div className="grid gap-4">
+      {users?.map(user => (
+        <UserCard key={user.id} user={user} />
+      ))}
+    </div>
+  );
+}
+
+// ✅ CORRECT: app/routes/users.$id.tsx (Dynamic route)
+import type { Route } from "./+types/users.$id";
+import { useUser } from "~/features/users/queries/use-users";
+
+export async function loader({ params, context }: Route.LoaderArgs) {
+  const queryClient = getQueryClient();
+  await queryClient.prefetchQuery(
+    orpc.user.find.queryOptions({ input: { id: params.id } })
+  );
+  
+  return { dehydratedState: dehydrate(queryClient) };
+}
+
+export default function UserDetailsPage({ params }: Route.ComponentProps) {
+  const { data: user } = useUser(params.id);
+  
+  return (
+    <div>
+      <h1>{user?.name}</h1>
+      <p>{user?.email}</p>
+    </div>
+  );
+}
+```
+
+### 4. **Feature Integration Pattern**
+```typescript
+// ✅ CORRECT: Feature folder structure
+app/features/users/
+├── components/
+│   ├── user-card.tsx        # Individual user display
+│   ├── user-form.tsx        # Create/edit user form
+│   ├── user-list.tsx        # List of users
+│   └── index.ts             # Export all components
+├── hooks/
+│   ├── use-user-form.ts     # Form-specific logic
+│   ├── use-user-modal.ts    # Modal state management
+│   └── index.ts             # Export all hooks
+├── queries/
+│   ├── use-users.ts         # User queries and mutations
+│   └── index.ts             # Export all queries
+├── types.ts                 # Frontend-specific types
+└── index.ts                 # Export everything
+
+// ✅ CORRECT: Using feature components in routes
+import { 
+  UserList, 
+  CreateUserForm, 
+  useUsers 
+} from "~/features/users";
+
+export default function UsersPage() {
+  return (
+    <div>
+      <CreateUserForm />
+      <UserList />
+    </div>
+  );
+}
+```
+
+## 🔄 React Router v7 File-Based Routing Patterns
+
+### 1. **File-Based Routing Setup**
+```typescript
+// ✅ CORRECT: app/routes.ts using file-based routing
+import { type RouteConfig } from "@react-router/dev/routes";
+import { flatRoutes } from "@react-router/fs-routes";
+
+export default flatRoutes() satisfies RouteConfig;
+
+// ✅ CORRECT: With custom configuration
+export default flatRoutes({
+  ignoredRouteFiles: ["**/*.test.{ts,tsx}"],
+  rootDirectory: "routes",
+}) satisfies RouteConfig;
+```
+
+### 2. **File Naming Conventions**
+```typescript
+// ✅ CORRECT: File-based route structure
+app/routes/
+├── _index.tsx                    # / (root index)
+├── about.tsx                     # /about
+├── users._index.tsx              # /users (users index)
+├── users.$id.tsx                 # /users/:id (dynamic segment)
+├── users.$id.edit.tsx            # /users/:id/edit
+├── users.new.tsx                 # /users/new
+├── _auth.login.tsx               # /login (pathless route layout)
+├── _auth.register.tsx            # /register (pathless route layout)
+├── _auth.tsx                     # Layout for auth routes
+├── products._index.tsx           # /products
+├── products.$id.tsx              # /products/:id
+├── admin_.dashboard.tsx          # /admin/dashboard (escapes admin layout)
+├── (marketing).about.tsx         # /about (optional segment)
+└── $.tsx                         # Catch-all route
+```
+
+### 3. **Route Type Imports**
+```typescript
+// ✅ CORRECT: Always use relative +types import based on filename
+import type { Route } from "./+types/users.$id";
+import type { Route } from "./+types/_index";
+import type { Route } from "./+types/products.$id.edit";
+
+// ❌ NEVER use relative paths
+// import type { Route } from "../+types/users.$id";
+```
+
+### 4. **File Organization Options**
+```typescript
+// ✅ CORRECT: Option 1 - Flat files
+app/routes/
+├── users._index.tsx
+├── users.$id.tsx
+└── users.new.tsx
+
+// ✅ CORRECT: Option 2 - Folder organization
+app/routes/
+├── users._index/
+│   ├── route.tsx              # The actual route module
+│   ├── user-list.tsx          # Co-located component
+│   └── user-card.tsx          # Co-located component
+├── users.$id/
+│   ├── route.tsx              # The actual route module
+│   ├── user-details.tsx       # Co-located component
+│   └── user-actions.tsx       # Co-located component
+└── users.new/
+    ├── route.tsx              # The actual route module
+    └── user-form.tsx          # Co-located component
+```
+
+### 5. **Type Generation Workflow**
+- **Run `pnpm run typecheck` after adding/modifying routes**
+- **Run `pnpm run dev` to auto-generate types during development**
+- **Types are generated in `./+types/[routeFileName]` relative to each route file**
+- **File names with special characters use the exact filename for types**
+
+## ☁️ Cloudflare Workers Patterns
+
+### 1. **Environment Setup**
+```typescript
+// ✅ CORRECT: Server context setup
+declare module "react-router" {
+  export interface AppLoadContext {
+    cloudflare: {
+      env: Env;
+      ctx: ExecutionContext;
+    };
+    context: Context;
+    client: RouterClient<typeof router>;
+  }
+}
+```
+
+### 2. **KV Storage Patterns**
+```typescript
+// ✅ CORRECT: KV operations in handlers
+export const getUserHandler = os
+  .$context<{ KV: KVNamespace }>()
+  .handler(async ({ context }) => {
+    const users = await context.KV.get("users", { type: "json" });
+    return users || [];
+  });
+```
+
+### 3. **Deployment Commands**
+```bash
+# Development
+pnpm run dev
+
+# Type checking (includes Cloudflare types)
+pnpm run typecheck
+
+# Build and deploy
+pnpm run deploy
+```
+
+## 🎨 UI Component Guidelines
+
+### 1. **shadcn/ui Integration** (When Implemented)
+```typescript
+// ✅ CORRECT: Import from shadcn/ui
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+
+// ✅ CORRECT: Combine with oRPC
+function UserForm() {
+  const createUser = useMutation(orpc.user.create.mutationOptions());
+  
+  return (
+    <form>
+      <Input placeholder="Name" />
+      <Button onClick={() => createUser.mutate({ input: formData })}>
+        Create User
+      </Button>
+    </form>
+  );
+}
+```
+
+### 2. **Component Organization**
+```
+app/
+├── components/
+│   └── ui/              # shadcn/ui components (shared)
+├── features/            # DDD: Feature-specific components
+│   ├── users/
+│   │   ├── components/  # User-specific UI components
+│   │   ├── hooks/       # User-specific hooks
+│   │   ├── queries/     # User-specific TanStack Query hooks
+│   │   ├── types.ts     # Frontend types for user feature
+│   │   └── index.ts     # Barrel export
+│   └── products/
+│       ├── components/  # Product-specific UI components
+│       ├── hooks/       # Product-specific hooks
+│       ├── queries/     # Product-specific TanStack Query hooks
+│       ├── types.ts     # Frontend types for product feature
+│       └── index.ts     # Barrel export
+```
+
+## 🚫 Anti-Patterns to Avoid
+
+### 1. **Backend Anti-Patterns**
+```typescript
+// ❌ DON'T put business logic in React Router loaders
+export async function loader() {
+  const user = await database.create(userData); // WRONG!
+  return { user };
+}
+
+// ❌ DON'T bypass oRPC type safety
+const response = await fetch('/api/users'); // WRONG!
+
+// ❌ DON'T put all logic in single router file
+// WRONG: app/backend/router.ts with hundreds of handlers
+export const router = {
+  user: { /* 20+ handlers */ },
+  product: { /* 30+ handlers */ },
+  // ... massive file
+};
+
+// ❌ DON'T mix domains in feature folders
+// WRONG: app/backend/features/users/product-handlers.ts
+```
+
+### 2. **Frontend Anti-Patterns**
+```typescript
+// ❌ DON'T use useEffect for data fetching
+useEffect(() => {
+  fetch('/api/users').then(/* ... */); // WRONG!
+}, []);
+
+// ❌ DON'T construct URLs manually
+navigate(`/users/${userId}`); // WRONG! Use href()
+
+// ❌ DON'T put feature logic in shared components
+// WRONG: app/components/user-specific-component.tsx
+
+// ❌ DON'T import across feature boundaries without abstraction
+// WRONG: app/features/users/components/user-list.tsx
+import { ProductCard } from "../../products/components/product-card"; // WRONG!
+
+// ❌ DON'T use old explicit route configuration patterns
+// WRONG: app/routes.ts
+export default [
+  route("users", "routes/users-layout.tsx", [
+    index("routes/users-list.tsx"),
+  ]),
+] satisfies RouteConfig; // Use file-based routing instead!
+
+// ✅ CORRECT: Use shared components or proper abstraction
+import { ProductCard } from "~/components/ui/product-card"; // Shared component
+```
+
+### 3. **Type Safety Anti-Patterns**
+```typescript
+// ❌ DON'T ignore oRPC types
+const users: any = await orpc.user.list({ input: {} }); // WRONG!
+
+// ❌ DON'T create custom API endpoints outside oRPC
+app.get('/api/custom-endpoint', /* ... */); // WRONG!
+```
+
+## ✅ Essential Workflow Checklist
+
+1. **🔧 Backend Development**
+   - Create feature folders in `app/backend/features/[domain]/`
+   - Define domain schemas with Zod in `schemas.ts`
+   - Create oRPC handlers with proper context typing in `handlers.ts`
+   - Aggregate handlers in main `router.ts`
+   - Add feature-specific middleware in `middleware.ts`
+
+2. **🎨 Frontend Development**
+   - Organize UI logic in `app/features/[domain]/`
+   - Create feature-specific queries in `queries/` folder
+   - Build reusable components in `components/` folder
+   - Use feature-specific hooks in `hooks/` folder
+   - Prefetch data in loaders, return dehydratedState
+   - Import route types from `./+types/[routeName]`
+
+3. **⚡ Development Workflow**
+   - `pnpm run dev` for development with HMR
+   - `pnpm run typecheck` after route changes
+   - `pnpm run deploy` for Cloudflare Workers deployment
+
+4. **🔐 Type Safety**
+   - oRPC provides end-to-end type safety
+   - Zod schemas define data contracts
+   - React Router v7 provides route type safety
+   - Never bypass type safety with `any`
+
+## 🤖 AI Assistant Guidelines
+
+When working with this project:
+
+1. **Always use oRPC for API calls** - Never suggest fetch or axios
+2. **Organize by features** - Backend logic in `features/[domain]/`, frontend in `app/features/[domain]/`
+3. **Use domain-driven organization** - Group related operations by business domain
+4. **Maintain type safety** - Use generated types, not any
+5. **Follow SSR hydration pattern** - Prefetch in loaders, use in components
+6. **Use pnpm** - Never suggest npm or yarn
+7. **Suggest shadcn/ui components** - For shared UI, feature-specific in features folder
+8. **Respect Cloudflare Workers constraints** - No Node.js APIs
+9. **Use React Router v7 patterns** - Framework mode with file-based routing
+10. **Follow DDD principles** - Don't mix domains, maintain feature boundaries
+
+## 📝 Example Implementation
+
+### Backend Feature Structure
+```typescript
+// app/backend/features/todos/schemas.ts
+import { z } from "zod";
+
+export const TodoSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  completed: z.boolean(),
+});
+
+export const CreateTodoSchema = TodoSchema.omit({ id: true });
+export const UpdateTodoSchema = TodoSchema.partial().omit({ id: true });
+
+// app/backend/features/todos/handlers.ts
+import { os } from "@orpc/server";
+import { TodoSchema, CreateTodoSchema } from "./schemas";
+
+export const createTodo = os
+  .$context<{ KV: KVNamespace }>()
+  .input(CreateTodoSchema)
+  .output(TodoSchema)
+  .handler(async ({ input, context }) => {
+    const todo = { id: crypto.randomUUID(), ...input };
+    await context.KV.put(`todo:${todo.id}`, JSON.stringify(todo));
+    return todo;
+  });
+
+export const todoHandlers = {
+  create: createTodo,
+  // ... other todo operations
+};
+
+// app/backend/router.ts
+import { todoHandlers } from "./features/todos/handlers";
+
+export const router = {
+  todo: todoHandlers,
+};
+```
+
+### Frontend Feature Structure
+```typescript
+// app/features/todos/queries/use-todos.ts
+import { orpc } from "~/lib/orpc";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+export function useCreateTodo() {
+  const queryClient = useQueryClient();
+  return useMutation(
+    orpc.todo.create.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['todo'] });
+      },
+    })
+  );
+}
+
+// app/features/todos/components/create-todo-form.tsx
+import { useCreateTodo } from "../queries/use-todos";
+
+export function CreateTodoForm() {
+  const createTodo = useCreateTodo();
+  
+  return (
+    <button onClick={() => createTodo.mutate({ 
+      input: { title: "New Todo", completed: false } 
+    })}>
+      Add Todo
+    </button>
+  );
+}
+
+// app/features/todos/index.ts
+export { CreateTodoForm } from "./components/create-todo-form";
+export { useCreateTodo } from "./queries/use-todos";
+
+// app/routes/todos._index.tsx (File-based routing)
+import type { Route } from "./+types/todos._index";
+import { orpc } from "~/lib/orpc";
+import { CreateTodoForm } from "~/features/todos";
+
+export async function loader() {
+  const queryClient = getQueryClient();
+  await queryClient.prefetchQuery(orpc.todo.list.queryOptions({ input: {} }));
+  return { dehydratedState: dehydrate(queryClient) };
+}
+
+export default function TodosPage() {
+  return (
+    <div>
+      <CreateTodoForm />
+    </div>
+  );
+}
+
+// app/routes/todos.$id.tsx (Dynamic route example)
+import type { Route } from "./+types/todos.$id";
+import { TodoDetails } from "~/features/todos";
+
+export async function loader({ params }: Route.LoaderArgs) {
+  const queryClient = getQueryClient();
+  await queryClient.prefetchQuery(
+    orpc.todo.find.queryOptions({ input: { id: params.id } })
+  );
+  return { dehydratedState: dehydrate(queryClient) };
+}
+
+export default function TodoDetailsPage({ params }: Route.ComponentProps) {
+  return <TodoDetails todoId={params.id} />;
+}
+```
+
+This architecture provides end-to-end type safety, excellent DX, and scales well with domain complexity.
+

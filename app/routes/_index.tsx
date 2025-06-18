@@ -1,6 +1,6 @@
 import { dehydrate, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { orpc } from "~/lib/orpc";
-import type { Route } from "./+types/home";
+import type { Route } from "./+types/_index";
 import { getQueryClient } from "~/lib/query-client";
 
 export function meta({}: Route.MetaArgs) {

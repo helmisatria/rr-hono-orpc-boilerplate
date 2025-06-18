@@ -17,6 +17,7 @@
     "@orpc/server": "^1.5.2",
     "@orpc/tanstack-query": "^1.5.2",
     "@orpc/zod": "^1.5.2",
+    "@react-router/fs-routes": "^7.6.2",
     "@tanstack/react-query": "^5.80.7",
     "dayjs": "^1.11.13",
     "deepmerge": "^4.3.1",
