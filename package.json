@@ -20,7 +20,7 @@
     "@tanstack/react-query": "^5.80.7",
     "dayjs": "^1.11.13",
     "deepmerge": "^4.3.1",
-    "hono": "^4.7.11",
+    "hono": "^4.8.0",
     "isbot": "^5.1.28",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -28,7 +28,7 @@
     "zod": "^3.25.67"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.6.0",
+    "@cloudflare/vite-plugin": "^1.7.1",
     "@react-router/dev": "^7.6.2",
     "@tailwindcss/vite": "^4.1.10",
     "@types/node": "^20.19.1",
@@ -38,6 +38,6 @@
     "typescript": "^5.8.3",
     "vite": "npm:rolldown-vite@latest",
     "vite-tsconfig-paths": "^5.1.4",
-    "wrangler": "^4.20.0"
+    "wrangler": "^4.20.2"
   }
 }
