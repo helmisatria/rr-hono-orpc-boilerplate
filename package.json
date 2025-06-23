@@ -39,7 +39,7 @@
     "typescript": "^5.8.3",
     "vite": "npm:rolldown-vite@latest",
     "vite-tsconfig-paths": "^5.1.4",
-    "wrangler": "^4.20.2"
+    "wrangler": "^4.20.5"
   },
   "engines": {
     "node": ">=22.0.0"
