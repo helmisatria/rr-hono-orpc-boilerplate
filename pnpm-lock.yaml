@@ -25,7 +25,7 @@ importers:
         version: 1.5.2(@orpc/contract@1.5.2)(@orpc/server@1.5.2)(zod@3.25.67)
       '@react-router/fs-routes':
         specifier: ^7.6.2
-        version: 7.6.2(@react-router/dev@7.6.2(@types/node@24.0.3)(jiti@2.4.2)(lightningcss@1.30.1)(react-router@7.6.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(rolldown-vite@6.3.21(@types/node@24.0.3)(esbuild@0.25.5)(jiti@2.4.2))(typescript@5.8.3)(wrangler@4.20.2))(typescript@5.8.3)
+        version: 7.6.2(@react-router/dev@7.6.2(@types/node@24.0.3)(jiti@2.4.2)(lightningcss@1.30.1)(react-router@7.6.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(rolldown-vite@6.3.21(@types/node@24.0.3)(esbuild@0.25.5)(jiti@2.4.2))(typescript@5.8.3)(wrangler@4.22.0))(typescript@5.8.3)
       '@tanstack/react-query':
         specifier: ^5.80.7
         version: 5.80.7(react@19.1.0)
@@ -56,10 +56,10 @@ importers:
     devDependencies:
       '@cloudflare/vite-plugin':
         specifier: ^1.7.1
-        version: 1.7.1(rolldown-vite@6.3.21(@types/node@24.0.3)(esbuild@0.25.5)(jiti@2.4.2))(rollup@4.43.0)(workerd@1.20250617.0)(wrangler@4.20.2)
+        version: 1.7.1(rolldown-vite@6.3.21(@types/node@24.0.3)(esbuild@0.25.5)(jiti@2.4.2))(rollup@4.43.0)(workerd@1.20250617.0)(wrangler@4.22.0)
       '@react-router/dev':
         specifier: ^7.6.2
-        version: 7.6.2(@types/node@24.0.3)(jiti@2.4.2)(lightningcss@1.30.1)(react-router@7.6.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(rolldown-vite@6.3.21(@types/node@24.0.3)(esbuild@0.25.5)(jiti@2.4.2))(typescript@5.8.3)(wrangler@4.20.2)
+        version: 7.6.2(@types/node@24.0.3)(jiti@2.4.2)(lightningcss@1.30.1)(react-router@7.6.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(rolldown-vite@6.3.21(@types/node@24.0.3)(esbuild@0.25.5)(jiti@2.4.2))(typescript@5.8.3)(wrangler@4.22.0)
       '@tailwindcss/vite':
         specifier: ^4.1.10
         version: 4.1.10(rolldown-vite@6.3.21(@types/node@24.0.3)(esbuild@0.25.5)(jiti@2.4.2))
@@ -85,8 +85,8 @@ importers:
         specifier: ^5.1.4
         version: 5.1.4(rolldown-vite@6.3.21(@types/node@24.0.3)(esbuild@0.25.5)(jiti@2.4.2))(typescript@5.8.3)
       wrangler:
-        specifier: ^4.20.2
-        version: 4.20.2
+        specifier: ^4.22.0
+        version: 4.22.0
 
 packages:
 
@@ -719,6 +719,9 @@ packages:
   '@jridgewell/sourcemap-codec@1.5.0':
     resolution: {integrity: sha512-gv3ZRaISU3fjPAgNsriBRqGWQL6quFx04YMPW/zD8XMLsU32mhCCbfbO6KZFLjvYpCZ8zyDEgqsgf+PwPaM7GQ==}
 
+  '@jridgewell/sourcemap-codec@1.5.2':
+    resolution: {integrity: sha512-gKYheCylLIedI+CSZoDtGkFV9YEBxRRVcfCH7OfAqh4TyUyRjEE6WVE/aXDXX0p8BIe/QgLcaAoI0220KRRFgg==}
+
   '@jridgewell/trace-mapping@0.3.25':
     resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
 
@@ -1334,8 +1337,8 @@ packages:
     resolution: {integrity: sha512-eNTPlAD67BmP31LDINZ3U7HSF8l57TxOY2PmBJ1shpCvpnxBF93mWCE8YHBnXs8qiUZJc9WDcWIeC3a2HIAMfw==}
     engines: {node: '>=6'}
 
-  exsolve@1.0.5:
-    resolution: {integrity: sha512-pz5dvkYYKQ1AHVrgOzBKWeP4u4FRb3a6DNK2ucr0OoNwYIU4QWsJ+NM36LLzORT+z845MzKHHhpXiUF5nvQoJg==}
+  exsolve@1.0.7:
+    resolution: {integrity: sha512-VO5fQUzZtI6C+vx4w/4BWJpg3s/5l+6pRQEHzFRM8WFi4XffSP1Z+4qi7GbjWbvRQEbdIco5mIMq+zX4rPuLrw==}
 
   fdir@6.4.6:
     resolution: {integrity: sha512-hiFoqpyZcfNm1yc4u8oWCf9A2c4D3QjCrks3zmoVKVxpQRzmPNar1hUJcBG2RQHvEVGDN+Jm81ZheVLAQMK6+w==}
@@ -1536,6 +1539,11 @@ packages:
 
   miniflare@4.20250617.0:
     resolution: {integrity: sha512-jQL3r+nOn+WgGlJjTKB7x2jVJcd33ZOIFbj7RqGv3kuPTMOQDuPc44Yx347g2JXvpU/HMlUPoBbPe3enE9V/ew==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
+
+  miniflare@4.20250617.4:
+    resolution: {integrity: sha512-IAoApFKxOJlaaFkym5ETstVX3qWzVt3xyqCDj6vSSTgEH3zxZJ5417jZGg8iQfMHosKCcQH1doPPqqnOZm/yrw==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -1972,8 +1980,8 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  wrangler@4.20.2:
-    resolution: {integrity: sha512-L7x1InqGKv9ZM0jMZ3HI8YlgRwJ4ReMT8Hr5sBe37FkBUID8GaJUMZzJP6NcJvVNeytFKekgeEGaQqZ4RgJ69A==}
+  wrangler@4.22.0:
+    resolution: {integrity: sha512-m8qVO3YxhUTII+4U889G/f5UuLSvMkUkCNatupV2f/SJ+iqaWtP1QbuQII8bs2J/O4rqxsz46Wu2S50u7tKB5Q==}
     engines: {node: '>=18.0.0'}
     hasBin: true
     peerDependencies:
@@ -2224,7 +2232,7 @@ snapshots:
     optionalDependencies:
       workerd: 1.20250617.0
 
-  '@cloudflare/vite-plugin@1.7.1(rolldown-vite@6.3.21(@types/node@24.0.3)(esbuild@0.25.5)(jiti@2.4.2))(rollup@4.43.0)(workerd@1.20250617.0)(wrangler@4.20.2)':
+  '@cloudflare/vite-plugin@1.7.1(rolldown-vite@6.3.21(@types/node@24.0.3)(esbuild@0.25.5)(jiti@2.4.2))(rollup@4.43.0)(workerd@1.20250617.0)(wrangler@4.22.0)':
     dependencies:
       '@cloudflare/unenv-preset': 2.3.3(unenv@2.0.0-rc.17)(workerd@1.20250617.0)
       '@mjackson/node-fetch-server': 0.6.1
@@ -2235,7 +2243,7 @@ snapshots:
       tinyglobby: 0.2.14
       unenv: 2.0.0-rc.17
       vite: rolldown-vite@6.3.21(@types/node@24.0.3)(esbuild@0.25.5)(jiti@2.4.2)
-      wrangler: 4.20.2
+      wrangler: 4.22.0
       ws: 8.18.0
     transitivePeerDependencies:
       - bufferutil
@@ -2530,6 +2538,8 @@ snapshots:
 
   '@jridgewell/sourcemap-codec@1.5.0': {}
 
+  '@jridgewell/sourcemap-codec@1.5.2': {}
+
   '@jridgewell/trace-mapping@0.3.25':
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
@@ -2538,7 +2548,7 @@ snapshots:
   '@jridgewell/trace-mapping@0.3.9':
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
-      '@jridgewell/sourcemap-codec': 1.5.0
+      '@jridgewell/sourcemap-codec': 1.5.2
 
   '@mjackson/node-fetch-server@0.2.0': {}
 
@@ -2684,7 +2694,7 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
-  '@react-router/dev@7.6.2(@types/node@24.0.3)(jiti@2.4.2)(lightningcss@1.30.1)(react-router@7.6.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(rolldown-vite@6.3.21(@types/node@24.0.3)(esbuild@0.25.5)(jiti@2.4.2))(typescript@5.8.3)(wrangler@4.20.2)':
+  '@react-router/dev@7.6.2(@types/node@24.0.3)(jiti@2.4.2)(lightningcss@1.30.1)(react-router@7.6.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(rolldown-vite@6.3.21(@types/node@24.0.3)(esbuild@0.25.5)(jiti@2.4.2))(typescript@5.8.3)(wrangler@4.22.0)':
     dependencies:
       '@babel/core': 7.27.4
       '@babel/generator': 7.27.5
@@ -2717,7 +2727,7 @@ snapshots:
       vite-node: 3.2.3(@types/node@24.0.3)(jiti@2.4.2)(lightningcss@1.30.1)
     optionalDependencies:
       typescript: 5.8.3
-      wrangler: 4.20.2
+      wrangler: 4.22.0
     transitivePeerDependencies:
       - '@types/node'
       - babel-plugin-macros
@@ -2734,9 +2744,9 @@ snapshots:
       - tsx
       - yaml
 
-  '@react-router/fs-routes@7.6.2(@react-router/dev@7.6.2(@types/node@24.0.3)(jiti@2.4.2)(lightningcss@1.30.1)(react-router@7.6.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(rolldown-vite@6.3.21(@types/node@24.0.3)(esbuild@0.25.5)(jiti@2.4.2))(typescript@5.8.3)(wrangler@4.20.2))(typescript@5.8.3)':
+  '@react-router/fs-routes@7.6.2(@react-router/dev@7.6.2(@types/node@24.0.3)(jiti@2.4.2)(lightningcss@1.30.1)(react-router@7.6.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(rolldown-vite@6.3.21(@types/node@24.0.3)(esbuild@0.25.5)(jiti@2.4.2))(typescript@5.8.3)(wrangler@4.22.0))(typescript@5.8.3)':
     dependencies:
-      '@react-router/dev': 7.6.2(@types/node@24.0.3)(jiti@2.4.2)(lightningcss@1.30.1)(react-router@7.6.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(rolldown-vite@6.3.21(@types/node@24.0.3)(esbuild@0.25.5)(jiti@2.4.2))(typescript@5.8.3)(wrangler@4.20.2)
+      '@react-router/dev': 7.6.2(@types/node@24.0.3)(jiti@2.4.2)(lightningcss@1.30.1)(react-router@7.6.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(rolldown-vite@6.3.21(@types/node@24.0.3)(esbuild@0.25.5)(jiti@2.4.2))(typescript@5.8.3)(wrangler@4.22.0)
       minimatch: 9.0.5
     optionalDependencies:
       typescript: 5.8.3
@@ -3152,7 +3162,7 @@ snapshots:
 
   exit-hook@2.2.1: {}
 
-  exsolve@1.0.5: {}
+  exsolve@1.0.7: {}
 
   fdir@6.4.6(picomatch@4.0.2):
     optionalDependencies:
@@ -3308,6 +3318,24 @@ snapshots:
   mime@3.0.0: {}
 
   miniflare@4.20250617.0:
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      acorn: 8.14.0
+      acorn-walk: 8.3.2
+      exit-hook: 2.2.1
+      glob-to-regexp: 0.4.1
+      sharp: 0.33.5
+      stoppable: 1.1.0
+      undici: 5.29.0
+      workerd: 1.20250617.0
+      ws: 8.18.0
+      youch: 3.3.4
+      zod: 3.22.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  miniflare@4.20250617.4:
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       acorn: 8.14.0
@@ -3640,7 +3668,7 @@ snapshots:
   unenv@2.0.0-rc.17:
     dependencies:
       defu: 6.1.4
-      exsolve: 1.0.5
+      exsolve: 1.0.7
       ohash: 2.0.11
       pathe: 2.0.3
       ufo: 1.6.1
@@ -3728,13 +3756,13 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20250617.0
       '@cloudflare/workerd-windows-64': 1.20250617.0
 
-  wrangler@4.20.2:
+  wrangler@4.22.0:
     dependencies:
       '@cloudflare/kv-asset-handler': 0.4.0
       '@cloudflare/unenv-preset': 2.3.3(unenv@2.0.0-rc.17)(workerd@1.20250617.0)
       blake3-wasm: 2.1.5
       esbuild: 0.25.4
-      miniflare: 4.20250617.0
+      miniflare: 4.20250617.4
       path-to-regexp: 6.3.0
       unenv: 2.0.0-rc.17
       workerd: 1.20250617.0
